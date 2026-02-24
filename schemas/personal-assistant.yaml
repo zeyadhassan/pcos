@@ -1,0 +1,187 @@
+# Domain Schema: Personal Assistant (Reference Example)
+# NOTE: This is a reference example copy. The working copy is ./domain.yaml
+# at the project root. Changes should be made there first.
+# This schema replicates the original PCOS personal-assistant ontology.
+# It defines entity types, relations, scopes, and per-type staleness rules.
+#
+# Usage:
+#   Set DOMAIN_SCHEMA_PATH=./domain.yaml (or pass --schema ./domain.yaml to CLI)
+#   The framework will auto-generate extraction prompts, Pydantic models,
+#   and API endpoints from this file.
+
+name: personal-assistant
+version: "1.0"
+description: >
+  Personal knowledge management for tasks, projects, preferences,
+  calendar events, goals, habits, and routines.
+
+scopes:
+  - global
+  - work
+  - personal
+  - project
+
+entity_types:
+
+  Person:
+    fields:
+      name:         { type: string, required: true }
+      email:        { type: string }
+      phone:        { type: string }
+      role:         { type: string }
+      organization: { type: string }
+      notes:        { type: string }
+    staleness_days: 365
+
+  Project:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      status:      { type: string, enum: [todo, in_progress, blocked, done, cancelled] }
+      deadline:    { type: datetime }
+    staleness_days: 90
+
+  Goal:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      target_date: { type: datetime }
+      priority:    { type: int }
+    staleness_days: 180
+
+  Task:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      status:      { type: string, enum: [todo, in_progress, blocked, done, cancelled] }
+      priority:    { type: int }
+      deadline:    { type: datetime }
+      assignee:    { type: string }
+      project:     { type: string }
+    staleness_days: 30
+
+  CalendarEvent:
+    fields:
+      name:            { type: string, required: true }
+      description:     { type: string }
+      start:           { type: datetime }
+      end:             { type: datetime }
+      location:        { type: string }
+      recurrence_rule: { type: string }
+    staleness_days: 1
+
+  Preference:
+    fields:
+      name:     { type: string, required: true }
+      category: { type: string }
+      value:    { type: string }
+      context:  { type: string }
+    staleness_days: 180
+
+  Habit:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      frequency:   { type: string }
+      time_of_day: { type: string }
+    staleness_days: 90
+
+  Routine:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      trigger:     { type: string }
+    staleness_days: 90
+
+  Constraint:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      rule:        { type: string }
+    staleness_days: 365
+
+  Resource:
+    fields:
+      name:          { type: string, required: true }
+      description:   { type: string }
+      uri:           { type: string }
+      resource_type: { type: string }
+    staleness_days: 180
+
+  Observation:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      raw_content: { type: string }
+    staleness_days: 90
+
+  Evidence:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+    staleness_days: 180
+
+  Outcome:
+    fields:
+      name:           { type: string, required: true }
+      description:    { type: string }
+      success:        { type: bool }
+      result_summary: { type: string }
+    staleness_days: 90
+
+  Feedback:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      sentiment:   { type: string, enum: [positive, negative, neutral] }
+      content:     { type: string }
+    staleness_days: 90
+
+  Deadline:
+    fields:
+      name:        { type: string, required: true }
+      description: { type: string }
+      due_at:      { type: datetime }
+    staleness_days: 7
+
+  Relationship:
+    fields:
+      name:          { type: string, required: true }
+      description:   { type: string }
+      relation_type: { type: string }
+    staleness_days: 365
+
+relation_types:
+  manages:
+    from: Person
+    to: Project
+  assigned_to:
+    from: Task
+    to: Person
+  belongs_to:
+    from: Task
+    to: Project
+  depends_on:
+    from: Task
+    to: Task
+  works_toward:
+    from: Task
+    to: Goal
+  part_of:
+    from: Goal
+    to: Project
+  prefers:
+    from: Person
+    to: Preference
+  knows:
+    from: Person
+    to: Person
+  attends:
+    from: Person
+    to: CalendarEvent
+  evidences:
+    from: Evidence
+    to: Observation
+  resulted_in:
+    from: Task
+    to: Outcome

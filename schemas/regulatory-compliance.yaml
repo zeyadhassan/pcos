@@ -1,0 +1,103 @@
+# Domain Schema: Regulatory Compliance
+# Demonstrates a non-personal domain — pharmaceutical / financial compliance.
+
+name: regulatory-compliance
+version: "1.0"
+description: >
+  Track regulatory requirements, audit findings, corrective actions,
+  evidence packages, and compliance status across regulations.
+
+scopes:
+  - global
+  - regulation
+  - department
+  - product
+
+entity_types:
+
+  Regulation:
+    fields:
+      name:             { type: string, required: true }
+      authority:        { type: string }
+      jurisdiction:     { type: string }
+      effective_date:   { type: datetime }
+      description:      { type: string }
+    staleness_days: 365
+
+  Requirement:
+    fields:
+      name:             { type: string, required: true }
+      description:      { type: string }
+      section_ref:      { type: string }
+      compliance_status: { type: string, enum: [compliant, non_compliant, partially_compliant, not_assessed] }
+      priority:         { type: string, enum: [critical, high, medium, low] }
+      deadline:         { type: datetime }
+    staleness_days: 90
+
+  AuditFinding:
+    fields:
+      name:             { type: string, required: true }
+      description:      { type: string }
+      severity:         { type: string, enum: [critical, major, minor, observation] }
+      status:           { type: string, enum: [open, in_remediation, closed, accepted_risk] }
+      found_date:       { type: datetime }
+      auditor:          { type: string }
+    staleness_days: 30
+
+  CorrectiveAction:
+    fields:
+      name:             { type: string, required: true }
+      description:      { type: string }
+      status:           { type: string, enum: [planned, in_progress, completed, verified] }
+      owner:            { type: string }
+      deadline:         { type: datetime }
+      effectiveness:    { type: string }
+    staleness_days: 14
+
+  EvidencePackage:
+    fields:
+      name:             { type: string, required: true }
+      description:      { type: string }
+      document_refs:    { type: string }
+      verified_by:      { type: string }
+      verified_date:    { type: datetime }
+    staleness_days: 180
+
+  ControlProcedure:
+    fields:
+      name:             { type: string, required: true }
+      description:      { type: string }
+      frequency:        { type: string, enum: [continuous, daily, weekly, monthly, quarterly, annual] }
+      owner:            { type: string }
+      last_executed:    { type: datetime }
+    staleness_days: 30
+
+  RiskAssessment:
+    fields:
+      name:             { type: string, required: true }
+      description:      { type: string }
+      likelihood:       { type: string, enum: [rare, unlikely, possible, likely, almost_certain] }
+      impact:           { type: string, enum: [negligible, minor, moderate, major, catastrophic] }
+      residual_risk:    { type: string }
+      mitigation:       { type: string }
+    staleness_days: 90
+
+relation_types:
+  governed_by:
+    from: Requirement
+    to: Regulation
+  found_in:
+    from: AuditFinding
+    to: Requirement
+  addresses:
+    from: CorrectiveAction
+    to: AuditFinding
+  evidences:
+    from: EvidencePackage
+    to: Requirement
+  controls:
+    from: ControlProcedure
+    to: Requirement
+  mitigates:
+    from: ControlProcedure
+    to: RiskAssessment
